@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+	<link href="style.css" rel="stylesheet" type="text/css">
+	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+</head>
+<body>
+	<svg class="svg"></svg>
+
+	<script>
+		var width = 960,
+				height = 500;
+
+		var margin = {top: 50, right: 30, bottom: 30, left: 50},
+			width = 960 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+
+		var x = d3.scale.ordinal()
+				.rangeRoundBands([0, width], .1);
+
+		var y = d3.scale.linear()
+				.range([height, 0]);
+
+		var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient("left");
+
+
+		var svg = d3.select(".svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+			.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+	d3.csv("audience-mls.csv", type, function(error, data) {
+		x.domain(data.map(function(d) { return d.HomeGames; }));
+		y.domain([0, d3.max(data, function(d) { return d.MTL; })]);
+
+		svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis)
+			.append("text")
+				.attr("dy", "2em")
+				.style("text-anchor", "start")
+				.text("Game number");
+
+		svg.append("g")
+				.attr("class", "y axis")
+				.call(yAxis)
+			.append("text")
+			.attr("dy", "1em")
+			.style("text-anchor", "end")
+			.text("Audience");
+
+		svg.append("text")
+					.attr("x", (width *.7))
+					.attr("y", 0 - (margin.top / 2))
+					.attr("text-anchor", "middle")
+					.style("font-size", "1em")
+					.text("Audiences par match - Impact de Montréal");
+
+		var totAud = [];
+		
+		for (i =0 ; i<data.length; i++){
+		  var ted = data[i].MTL;
+		  if(i==0){
+		    totAud[i] = ted;
+		  }
+		  else{
+		    totAud[i] = totAud[i-1] + ted;
+		  }
+		  
+		}
+
+		var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+					return "Assistance : <span style='color:white'>" + d.MTL + " et " + totAud[d.HomeGames-1]/d.HomeGames + "</span>";
+				})
+		svg.call(tip);
+
+
+    var bob = data.MTL;
+
+		 svg.selectAll(".bar")
+				.data(data)
+			.enter().append("rect")
+				.attr("class", "bar")
+				.attr("x", function(d) { return x(d.HomeGames); })
+				.attr("y", function(d) { return y(d.MTL); })
+				.attr("height", function(d) { return height - y(d.MTL); })
+				.attr("width", x.rangeBand())
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide);
+
+
+		// Ligne de la moyenne
+		// Doit reste après le graph pour être "par-dessus"
+		var dataSum = d3.sum(data, function(d) { return d.MTL; });
+		var line = d3.svg.line()
+				.x(function(d, i) {
+					return x(d.HomeGames) + i; })
+				.y(function(d, i) { return y(totAud[d.HomeGames-1]/d.HomeGames); });
+
+
+
+		svg.append("path")
+				.datum(data)
+				.attr("class", "line")
+				.attr("d", line);
+
+	});
+
+
+
+
+	function type(d) {
+		d.MTL = +d.MTL; // coerce to number
+		return d;
+	}
+
+	</script>
+</body>
