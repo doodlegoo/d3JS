@@ -2,11 +2,15 @@
 <head>
   <meta charset="utf-8">
 	<link href="style.css" rel="stylesheet" type="text/css">
-	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<title>Vizualisation d3js</title>
 </head>
 <body>
-	<svg class="svg"></svg>
+	
+	<div id="content">	
+		<svg class="svg"></svg>
+	</div>
 
 	<script>
 		var width = 960,
@@ -39,7 +43,7 @@
 
 
 
-	d3.csv("audience-mls.csv", type, function(error, data) {
+	d3.csv("./mls-audience.csv", type, function(error, data) {
 		x.domain(data.map(function(d) { return d.HomeGames; }));
 		y.domain([0, d3.max(data, function(d) { return d.MTL; })]);
 
@@ -84,7 +88,7 @@
 				.attr('class', 'd3-tip')
 				.offset([-10, 0])
 				.html(function(d) {
-					return "Assistance : <span style='color:white'>" + d.MTL + " et " + totAud[d.HomeGames-1]/d.HomeGames + "</span>";
+					return "Assistance : <span style='color:white'>" + d.MTL + " et " + Math.round(totAud[d.HomeGames-1]/d.HomeGames) + "</span>";
 				})
 		svg.call(tip);
 
